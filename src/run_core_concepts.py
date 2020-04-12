@@ -323,9 +323,3 @@ for document_number, score in sorted(enumerate(sims), key=lambda x: x[1], revers
 #
 # There's still much more to learn about :ref:`sphx_glr_auto_examples_core_run_corpora_and_vector_spaces.py`.
 
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-img = mpimg.imread('run_core_concepts.png')
-imgplot = plt.imshow(img)
-plt.axis('off')
-plt.show()
