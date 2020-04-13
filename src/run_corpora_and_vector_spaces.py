@@ -7,8 +7,17 @@ Demonstrates transforming text into a vector space representation.
 Also introduces corpus streaming and persistence to disk in various formats.
 """
 
+import scipy.sparse
+import numpy as np
+import gensim
+from six import iteritems
+from smart_open import open  # for transparently opening remote files
+from gensim import corpora
+from collections import defaultdict
+from pprint import pprint  # pretty-printer
 import logging
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+logging.basicConfig(
+    format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 ###############################################################################
 # First, let’s create a small corpus of nine short documents [1]_:
@@ -38,8 +47,6 @@ documents = [
 # First, let's tokenize the documents, remove common words (using a toy stoplist)
 # as well as words that only appear once in the corpus:
 
-from pprint import pprint  # pretty-printer
-from collections import defaultdict
 
 # remove common words and tokenize
 stoplist = set('for a of the and to in'.split())
@@ -85,9 +92,9 @@ pprint(texts)
 # It is advantageous to represent the questions only by their (integer) ids. The mapping
 # between the questions and ids is called a dictionary:
 
-from gensim import corpora
 dictionary = corpora.Dictionary(texts)
-dictionary.save('/tmp/deerwester.dict')  # store the dictionary, for future reference
+# store the dictionary, for future reference
+dictionary.save('/tmp/deerwester.dict')
 print(dictionary)
 
 ###############################################################################
@@ -104,7 +111,8 @@ print(dictionary.token2id)
 
 new_doc = "Human computer interaction"
 new_vec = dictionary.doc2bow(new_doc.lower().split())
-print(new_vec)  # the word "interaction" does not appear in the dictionary and is ignored
+# the word "interaction" does not appear in the dictionary and is ignored
+print(new_vec)
 
 ###############################################################################
 # The function :func:`doc2bow` simply counts the number of occurrences of
@@ -114,7 +122,8 @@ print(new_vec)  # the word "interaction" does not appear in the dictionary and i
 # (id 0) and `human` (id 1) appear once; the other ten dictionary words appear (implicitly) zero times.
 
 corpus = [dictionary.doc2bow(text) for text in texts]
-corpora.MmCorpus.serialize('/tmp/deerwester.mm', corpus)  # store to disk, for later use
+# store to disk, for later use
+corpora.MmCorpus.serialize('/tmp/deerwester.mm', corpus)
 print(corpus)
 
 ###############################################################################
@@ -133,7 +142,6 @@ print(corpus)
 # Instead, let's assume the documents are stored in a file on disk, one document per line. Gensim
 # only requires that a corpus must be able to return one document vector at a time:
 #
-from smart_open import open  # for transparently opening remote files
 
 
 class MyCorpus(object):
@@ -161,6 +169,7 @@ class MyCorpus(object):
 # Just parse your input to retrieve a clean list of tokens in each document,
 # then convert the tokens via a dictionary to their ids and yield the resulting sparse vector inside `__iter__`.
 
+
 corpus_memory_friendly = MyCorpus()  # doesn't load the corpus into memory!
 print(corpus_memory_friendly)
 
@@ -179,17 +188,19 @@ for vector in corpus_memory_friendly:  # load one vector into memory at a time
 #
 # Similarly, to construct the dictionary without loading all texts into memory:
 
-from six import iteritems
 # collect statistics about all tokens
-dictionary = corpora.Dictionary(line.lower().split() for line in open('https://radimrehurek.com/gensim/mycorpus.txt'))
+dictionary = corpora.Dictionary(line.lower().split() for line in open(
+    'https://radimrehurek.com/gensim/mycorpus.txt'))
 # remove stop words and words that appear only once
 stop_ids = [
     dictionary.token2id[stopword]
     for stopword in stoplist
     if stopword in dictionary.token2id
 ]
-once_ids = [tokenid for tokenid, docfreq in iteritems(dictionary.dfs) if docfreq == 1]
-dictionary.filter_tokens(stop_ids + once_ids)  # remove stop words and words that appear only once
+once_ids = [tokenid for tokenid, docfreq in iteritems(
+    dictionary.dfs) if docfreq == 1]
+# remove stop words and words that appear only once
+dictionary.filter_tokens(stop_ids + once_ids)
 dictionary.compactify()  # remove gaps in id sequence after words that were removed
 print(dictionary)
 
@@ -245,7 +256,8 @@ print(corpus)
 # Instead, to view the contents of a corpus:
 
 # one way of printing a corpus: load it entirely into memory
-print(list(corpus))  # calling list() will convert any sequence to a plain Python list
+# calling list() will convert any sequence to a plain Python list
+print(list(corpus))
 
 ###############################################################################
 # or
@@ -274,17 +286,16 @@ corpora.BleiCorpus.serialize('/tmp/corpus.lda-c', corpus)
 # Gensim also contains `efficient utility functions <http://radimrehurek.com/gensim/matutils.html>`_
 # to help converting from/to numpy matrices
 
-import gensim
-import numpy as np
-numpy_matrix = np.random.randint(10, size=[5, 2])  # random matrix as an example
+numpy_matrix = np.random.randint(
+    10, size=[5, 2])  # random matrix as an example
 corpus = gensim.matutils.Dense2Corpus(numpy_matrix)
 # numpy_matrix = gensim.matutils.corpus2dense(corpus, num_terms=number_of_corpus_features)
 
 ###############################################################################
 # and from/to `scipy.sparse` matrices
 
-import scipy.sparse
-scipy_sparse_matrix = scipy.sparse.random(5, 2)  # random sparse matrix as example
+scipy_sparse_matrix = scipy.sparse.random(
+    5, 2)  # random sparse matrix as example
 corpus = gensim.matutils.Sparse2Corpus(scipy_sparse_matrix)
 scipy_csc_matrix = gensim.matutils.corpus2csc(corpus)
 
@@ -305,10 +316,3 @@ scipy_csc_matrix = gensim.matutils.corpus2csc(corpus)
 
 ###############################################################################
 # Here we show a pretty fastText logo so that our gallery picks it up as a thumbnail.
-#
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-img = mpimg.imread('run_corpora_and_vector_spaces.png')
-imgplot = plt.imshow(img)
-plt.axis('off')
-plt.show()

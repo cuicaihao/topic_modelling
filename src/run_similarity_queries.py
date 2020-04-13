@@ -5,8 +5,13 @@ Similarity Queries
 Demonstrates querying a corpus for similar documents.
 """
 
+from gensim import similarities
+from gensim import models
+from gensim import corpora
+from collections import defaultdict
 import logging
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+logging.basicConfig(
+    format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 ###############################################################################
 #
@@ -17,8 +22,6 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 # This step is the same as in the previous tutorial;
 # if you completed it, feel free to skip to the next section.
 
-from collections import defaultdict
-from gensim import corpora
 
 documents = [
     "Human machine interface for lab abc computer applications",
@@ -74,7 +77,6 @@ corpus = [dictionary.doc2bow(text) for text in texts]
 # To follow Deerwester's example, we first use this tiny corpus to define a 2-dimensional
 # LSI space:
 
-from gensim import models
 lsi = models.LsiModel(corpus, id2word=dictionary, num_topics=2)
 
 ###############################################################################
@@ -110,8 +112,8 @@ print(vec_lsi)
 # used for training LSI, converted to 2-D LSA space. But that's only incidental, we
 # might also be indexing a different corpus altogether.
 
-from gensim import similarities
-index = similarities.MatrixSimilarity(lsi[corpus])  # transform corpus to LSI space and index it
+# transform corpus to LSI space and index it
+index = similarities.MatrixSimilarity(lsi[corpus])
 
 ###############################################################################
 # .. warning::
@@ -142,7 +144,8 @@ index = similarities.MatrixSimilarity.load('/tmp/deerwester.index')
 # To obtain similarities of our query document against the nine indexed documents:
 
 sims = index[vec_lsi]  # perform a similarity query against the corpus
-print(list(enumerate(sims)))  # print (document_number, document_similarity) 2-tuples
+# print (document_number, document_similarity) 2-tuples
+print(list(enumerate(sims)))
 
 ###############################################################################
 # Cosine measure returns similarities in the range `<-1, 1>` (the greater, the more similar),
@@ -185,10 +188,3 @@ for i, s in enumerate(sims):
 # Gensim has no ambition to become an all-encompassing framework, across all NLP (or even Machine Learning) subfields.
 # Its mission is to help NLP practitioners try out popular topic modelling algorithms
 # on large datasets easily, and to facilitate prototyping of new algorithms for researchers.
-
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-img = mpimg.imread('run_similarity_queries.png')
-imgplot = plt.imshow(img)
-plt.axis('off')
-plt.show()
