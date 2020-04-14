@@ -5,8 +5,14 @@ Topics and Transformations
 Introduces transformations and demonstrates their use on a toy corpus.
 """
 
+import tempfile
+import os
+from gensim import models
+from gensim import corpora
+from collections import defaultdict
 import logging
-logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
+logging.basicConfig(
+    format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
 
 ###############################################################################
 # In this tutorial, I will show how to transform documents from one vector representation
@@ -26,8 +32,6 @@ logging.basicConfig(format='%(asctime)s : %(levelname)s : %(message)s', level=lo
 # This step is the same as in the previous tutorial;
 # if you completed it, feel free to skip to the next section.
 
-from collections import defaultdict
-from gensim import corpora
 
 documents = [
     "Human machine interface for lab abc computer applications",
@@ -70,7 +74,6 @@ corpus = [dictionary.doc2bow(text) for text in texts]
 # The transformations are standard Python objects, typically initialized by means of
 # a :dfn:`training corpus`:
 #
-from gensim import models
 
 tfidf = models.TfidfModel(corpus)  # step 1 -- initialize a model
 
@@ -126,8 +129,10 @@ for doc in corpus_tfidf:
 #
 # Transformations can also be serialized, one on top of another, in a sort of chain:
 
-lsi_model = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=2)  # initialize an LSI transformation
-corpus_lsi = lsi_model[corpus_tfidf]  # create a double wrapper over the original corpus: bow->tfidf->fold-in-lsi
+# initialize an LSI transformation
+lsi_model = models.LsiModel(corpus_tfidf, id2word=dictionary, num_topics=2)
+# create a double wrapper over the original corpus: bow->tfidf->fold-in-lsi
+corpus_lsi = lsi_model[corpus_tfidf]
 
 ###############################################################################
 # Here we transformed our Tf-Idf corpus via `Latent Semantic Indexing <http://en.wikipedia.org/wiki/Latent_semantic_indexing>`_
@@ -152,8 +157,6 @@ for doc, as_text in zip(corpus_lsi, documents):
 
 ###############################################################################
 # Model persistency is achieved with the :func:`save` and :func:`load` functions:
-import os
-import tempfile
 
 with tempfile.NamedTemporaryFile(prefix='model-', suffix='.lsi', delete=False) as tmp:
     lsi_model.save(tmp.name)  # same for tfidf, lda, ...
@@ -284,10 +287,3 @@ os.unlink(tmp.name)
 # .. [4] Halko, Martinsson, Tropp. 2009. Finding structure with randomness.
 #
 # .. [5] Řehůřek. 2011. Subspace tracking for Latent Semantic Analysis.
-
-import matplotlib.pyplot as plt
-import matplotlib.image as mpimg
-img = mpimg.imread('run_topics_and_transformations.png')
-imgplot = plt.imshow(img)
-plt.axis('off')
-plt.show()
